@@ -46,7 +46,6 @@ TensorOutput = namedtuple('TensorOutput',
 
 
 class SMPL(nn.Module):
-
     NUM_JOINTS = 23
     NUM_BODY_JOINTS = 23
     SHAPE_SPACE_DIM = 300
@@ -222,6 +221,7 @@ class SMPL(nn.Module):
             if body_pose is None:
                 default_body_pose = torch.zeros(
                     [batch_size, self.NUM_BODY_JOINTS * 3], dtype=dtype)
+                breakpoint()
             else:
                 if torch.is_tensor(body_pose):
                     default_body_pose = body_pose.clone().detach()
