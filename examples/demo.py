@@ -14,6 +14,7 @@
 #
 # Contact: ps-license@tuebingen.mpg.de
 
+import os
 import os.path as osp
 import argparse
 
@@ -21,9 +22,10 @@ import numpy as np
 import torch
 
 import sys
-sys.path.append(os.path.realpath("../"))
-sys.path.append(os.path.realpath("./"))
-import amplx as smplx
+# sys.path.append(os.path.realpath("../"))
+# sys.path.append(os.path.realpath("./"))
+import smplx
+# import amplx as smplx
 
 def main(model_folder,
          model_type='smplx',
@@ -37,13 +39,13 @@ def main(model_folder,
          plotting_module='pyrender',
          use_face_contour=False):
     
-    body_pose = torch.zeros([1, 23 * 3], dtype=torch.float32)
-    body_pose[0,0:3] = 1
+    # body_pose = torch.zeros([1, 23 * 3], dtype=torch.float32)
+    # body_pose[0,0:3] = 1
     model = smplx.create(model_folder, model_type=model_type,
                          gender=gender, use_face_contour=use_face_contour,
                          num_betas=num_betas,
                          num_expression_coeffs=num_expression_coeffs,
-                         ext=ext, body_pose=body_pose)
+                         ext=ext)
     print(model)
 
     betas, expression = None, None
