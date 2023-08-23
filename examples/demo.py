@@ -20,8 +20,10 @@ import argparse
 import numpy as np
 import torch
 
-import smplx
-
+import sys
+sys.path.append(os.path.realpath("../"))
+sys.path.append(os.path.realpath("./"))
+import amplx as smplx
 
 def main(model_folder,
          model_type='smplx',
@@ -34,12 +36,14 @@ def main(model_folder,
          num_expression_coeffs=10,
          plotting_module='pyrender',
          use_face_contour=False):
-
+    
+    body_pose = torch.zeros([1, 23 * 3], dtype=torch.float32)
+    body_pose[0,0:3] = 1
     model = smplx.create(model_folder, model_type=model_type,
                          gender=gender, use_face_contour=use_face_contour,
                          num_betas=num_betas,
                          num_expression_coeffs=num_expression_coeffs,
-                         ext=ext)
+                         ext=ext, body_pose=body_pose)
     print(model)
 
     betas, expression = None, None
@@ -53,9 +57,6 @@ def main(model_folder,
                    return_verts=True)
     vertices = output.vertices.detach().cpu().numpy().squeeze()
     joints = output.joints.detach().cpu().numpy().squeeze()
-
-    print('Vertices shape =', vertices.shape)
-    print('Joints shape =', joints.shape)
 
     if plotting_module == 'pyrender':
         import pyrender
