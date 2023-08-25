@@ -221,7 +221,6 @@ class SMPL(nn.Module):
             if body_pose is None:
                 default_body_pose = torch.zeros(
                     [batch_size, self.NUM_BODY_JOINTS * 3], dtype=dtype)
-                breakpoint()
             else:
                 if torch.is_tensor(body_pose):
                     default_body_pose = body_pose.clone().detach()
