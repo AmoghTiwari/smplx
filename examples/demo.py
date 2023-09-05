@@ -22,10 +22,10 @@ import numpy as np
 import torch
 
 import sys
-# sys.path.append(os.path.realpath("../"))
-# sys.path.append(os.path.realpath("./"))
-import smplx
-# import amplx as smplx
+# import smplx
+import amplx as smplx
+
+import trimesh
 
 def main(model_folder,
          model_type='smplx',
@@ -39,15 +39,16 @@ def main(model_folder,
          plotting_module='pyrender',
          use_face_contour=False):
     
-    # body_pose = torch.zeros([1, 23 * 3], dtype=torch.float32)
-    # body_pose[0,0:3] = 1
+    body_pose = torch.zeros([1, 23 * 3], dtype=torch.float32)
+    # body_pose[0,] = -np.pi/2
+    # body_pose[0,3] = np.pi/2
     model = smplx.create(model_folder, model_type=model_type,
                          gender=gender, use_face_contour=use_face_contour,
                          num_betas=num_betas,
                          num_expression_coeffs=num_expression_coeffs,
-                         ext=ext)
+                         ext=ext, body_pose=body_pose, create_body_pose=False)
     print(model)
-
+    faces = model.faces
     betas, expression = None, None
     if sample_shape:
         betas = torch.randn([1, model.num_betas], dtype=torch.float32)
@@ -60,9 +61,19 @@ def main(model_folder,
     vertices = output.vertices.detach().cpu().numpy().squeeze()
     joints = output.joints.detach().cpu().numpy().squeeze()
 
+    if args.save_result:
+        if not os.path.isdir(args.out_dir):
+            os.makedirs(args.out_dir)
+        pcd_ofp = os.path.join(args.out_dir, "demo"+".ply")
+        pcd = trimesh.PointCloud(vertices)
+        _ = pcd.export(pcd_ofp)
+        mesh = trimesh.Trimesh(vertices=vertices, faces=faces)
+        mesh_ofp = os.path.join(args.out_dir, "demo"+".obj")
+        _ = mesh.export(mesh_ofp)
+
     if plotting_module == 'pyrender':
         import pyrender
-        import trimesh
+        # import trimesh
         vertex_colors = np.ones([vertices.shape[0], 4]) * [0.3, 0.3, 0.3, 0.8]
         tri_mesh = trimesh.Trimesh(vertices, model.faces,
                                    vertex_colors=vertex_colors)
@@ -79,8 +90,8 @@ def main(model_folder,
             tfs[:, :3, 3] = joints
             joints_pcl = pyrender.Mesh.from_trimesh(sm, poses=tfs)
             scene.add(joints_pcl)
-
-        pyrender.Viewer(scene, use_raymond_lighting=True)
+        
+        # pyrender.Viewer(scene, use_raymond_lighting=True)
     elif plotting_module == 'matplotlib':
         from matplotlib import pyplot as plt
         from mpl_toolkits.mplot3d import Axes3D
@@ -158,9 +169,9 @@ if __name__ == '__main__':
     parser.add_argument('--use-face-contour', default=False,
                         type=lambda arg: arg.lower() in ['true', '1'],
                         help='Compute the contour of the face')
-
+    parser.add_argument('--out_dir', default='./outputs')
+    parser.add_argument('--save_result', action='store_true')
     args = parser.parse_args()
-
     model_folder = osp.expanduser(osp.expandvars(args.model_folder))
     model_type = args.model_type
     plot_joints = args.plot_joints
