@@ -127,7 +127,7 @@ class SMPL(nn.Module):
 
         self.gender = gender
         self.age = age
-
+        self.body_pose = body_pose
         if data_struct is None:
             if osp.isdir(model_path):
                 model_fn = 'SMPL_{}.{ext}'.format(gender.upper(), ext='pkl')
@@ -2408,7 +2408,6 @@ def create(
         model_path = os.path.join(model_path, model_type)
     else:
         model_type = osp.basename(model_path).split('_')[0].lower()
-
     if model_type.lower() == 'smpl':
         return SMPL(model_path, **kwargs)
     elif model_type.lower() == 'smplh':
